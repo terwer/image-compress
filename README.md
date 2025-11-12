@@ -1,4 +1,4 @@
 ```bash
-/Volumes/workspace/mk/mk-product/workspace_scripts/image-compress/venv/bin/python /Volumes/workspace/mk/mk-product/workspace_scripts/image-compress/cli/main.py -f JPEG -s 15 ./data/icon.png
-/Volumes/workspace/mk/mk-product/workspace_scripts/image-compress/venv/bin/python /Volumes/workspace/mk/mk-product/workspace_scripts/image-compress/cli/main.py -f JPEG -s 180 ./data/preview.png
+python cli/main.py -v -s 15 -c 0.5 input.png
+python cli/main.py -v -s 180 input.png
 ```

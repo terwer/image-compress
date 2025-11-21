@@ -73,6 +73,89 @@ python cli/main.py -d images_folder -o compressed_folder
 python cli/main.py -d images_folder -o compressed_folder -r
 ```
 
+### 独立可执行文件版本
+
+该工具还可以打包成无需Python环境即可运行的独立可执行文件：
+
+1. 安装打包工具：
+   ```bash
+   pip install pyinstaller pillow
+   ```
+
+2. 打包工具：
+   ```bash
+   pyinstaller --onefile --windowed standalone_image_compressor.py
+   ```
+
+3. 在 `dist/` 文件夹中找到可执行文件并直接使用：
+   ```bash
+   ./dist/standalone_image_compressor input.jpg -o output.jpg -q 80
+   ./dist/standalone_image_compressor input.jpg -o output.jpg -s 20
+   ./dist/standalone_image_compressor -d images_folder -o compressed_folder
+   ```
+
+在Windows系统上，可执行文件将具有 `.exe` 扩展名。
+
+### 跨平台支持
+
+独立版本支持所有主要平台：
+
+- **Windows**: `.exe` 文件
+- **macOS**: 独立可执行文件
+- **Linux**: 独立可执行文件
+
+对于Linux包管理系统：
+- **DEB包** 适用于 Debian/Ubuntu
+- **RPM包** 适用于 Red Hat/CentOS/Fedora
+
+### 为不同平台构建
+
+使用跨平台构建脚本为不同平台创建可执行文件：
+
+```bash
+# 为当前平台构建
+python simple_cross_platform_build.py
+
+# 为特定平台构建
+python simple_cross_platform_build.py --platform windows
+python simple_cross_platform_build.py --platform darwin
+python simple_cross_platform_build.py --platform linux
+
+# 为所有平台构建
+python simple_cross_platform_build.py --all
+
+# 创建Linux包（需要 dpkg-deb 和 rpmbuild）
+python simple_cross_platform_build.py --platform linux --packages
+```
+
+### GitHub Actions 自动化构建
+
+本仓库包含 GitHub Actions 工作流，可自动为所有平台构建和发布可执行文件：
+
+- **工作流文件**: [.github/workflows/build-release.yml](.github/workflows/build-release.yml)
+- **触发条件**: 推送以 `v` 开头的标签（例如 `v1.0.0`）
+- **支持平台**: Windows、macOS 和 Linux
+- **输出**: 包含所有平台可执行文件的 GitHub Release
+
+#### 创建新版本
+
+要创建带有自动构建的新版本：
+
+```bash
+# 提交更改
+git add .
+git commit -m "Prepare for release"
+
+# 创建并推送新标签
+git tag v1.0.0
+git push origin main --tags
+```
+
+GitHub Actions 工作流将自动：
+1. 为 Windows、macOS 和 Linux 构建可执行文件
+2. 创建新的 GitHub Release
+3. 将所有可执行文件作为发布资产上传
+
 ### 查看完整帮助信息
 ```bash
 python cli/main.py -h
@@ -88,6 +171,9 @@ python cli/main.py -h
 - ✅ 支持多种图像格式
 - ✅ 指定大小压缩算法
 - ✅ 自动质量平衡逻辑
+- ✅ 独立可执行文件版本
+- ✅ 跨平台支持
+- ✅ GitHub Actions 自动化构建
 
 ### 待完成功能
 - ⬜ 更多高级压缩选项

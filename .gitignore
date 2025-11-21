@@ -2,3 +2,6 @@
 .idea/
 data/
 __pycache__
+dist
+input.jpg
+output.jpg

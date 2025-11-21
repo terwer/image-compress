@@ -1,0 +1,120 @@
+# This workflow will build standalone executables for multiple platforms
+# and create a GitHub Release when a new tag is pushed
+
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pillow
+
+    - name: Build executable (Linux)
+      if: matrix.os == 'ubuntu-20.04'
+      run: |
+        pyinstaller --onefile --name image-compressor standalone_image_compressor.py
+
+    - name: Build executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onefile --name image-compressor.exe standalone_image_compressor.py
+
+    - name: Build executable (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --onefile --name image-compressor standalone_image_compressor.py
+
+    - name: Upload artifact (Linux)
+      if: matrix.os == 'ubuntu-20.04'
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-compressor-linux
+        path: dist/image-compressor
+
+    - name: Upload artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-compressor-windows
+        path: dist/image-compressor.exe
+
+    - name: Upload artifact (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-compressor-macos
+        path: dist/image-compressor
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Linux executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./image-compressor-linux/image-compressor
+        asset_name: image-compressor-linux
+        asset_content_type: application/octet-stream
+
+    - name: Upload Windows executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./image-compressor-windows/image-compressor.exe
+        asset_name: image-compressor-windows.exe
+        asset_content_type: application/octet-stream
+
+    - name: Upload macOS executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./image-compressor-macos/image-compressor
+        asset_name: image-compressor-macos
+        asset_content_type: application/octet-stream
